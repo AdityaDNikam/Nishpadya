@@ -1,0 +1,36 @@
+# Node/Dependencies
+node_modules/
+
+# Build and production outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# Testing coverage reports
+coverage/
+.nyc_output/
+
+# Auto-generated lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# Logs and databases
+*.log
+*.sqlite
+*.sqlite3
+
+# Minified scripts and styles
+*.min.js
+*.min.css
+
+# Miscellaneous / OS files
+.DS_Store
+Thumbs.db
+.cache/
+.env
+.env.*
