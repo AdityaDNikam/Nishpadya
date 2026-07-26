@@ -9,8 +9,8 @@ import {
     deleteUser
 } from "../controllers/user.controller.js";
 import { Router } from "express";
-import { upload } from "../middlewares/multer.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { upload } from "../middleware/multer.js";
+import { verifyJWT } from "../middleware/auth-jwt.js";
 
 const router = Router();
 

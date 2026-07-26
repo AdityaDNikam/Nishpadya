@@ -1,4 +1,4 @@
-import { asyncHandler } from "../utils/AsyncFunct.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 import { generateGrokCompletion } from "../utils/GrokApiHandler.js"
 import ApiError from "../utils/ApiError.js"
 import ApiResponce from "../utils/ApiResponce.js"

@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
-import { FileUploadCloudinary, FileDeleteCloudinary } from "../utils/cloudinary.js";
+import { FileUploadCloudinary, FileDeleteCloudinary, deleteFileOnCloudinary } from "../utils/cloudinary.js";
 import ApiResponce from "../utils/ApiResponce.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
@@ -33,8 +33,10 @@ const reqisterUser = asyncHandler(async (req, res, next) => {
         throw new ApiError("400", "User with the username or email all ready exist!")
     }
     const avatarLocalPath = req.files?.avatar?.[0]?.path
+    let avatar = "";
     if (avatarLocalPath) {
-        const avatar = await FileUploadCloudinary(avatarLocalPath)
+        const uploadResult = await FileUploadCloudinary(avatarLocalPath)
+        avatar = uploadResult?.url || ""
     }
     const user = await User.create({
         userName: userName.toLowerCase(),

@@ -1,5 +1,5 @@
-import User from "../models/user.model.js"
-import { asyncHandler } from "../utils/AsyncFunct.js"
+import { User } from "../models/user.model.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 import ApiError from "../utils/ApiError.js"
 import ApiResponce from "../utils/ApiResponce.js"
 import Task from "../models/task.model.js"
