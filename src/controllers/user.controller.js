@@ -21,16 +21,14 @@ const GenerateAccessAndRefreshToken = async (userId) => {
 }
 
 const reqisterUser = asyncHandler(async (req, res, next) => {
-    const { userName, email, password, fullname } = req.body
-    if ([userName, email, password, fullname].some((field) => !field || field.trim() === "")) {
+    const { email, password, name } = req.body
+    if ([email, password, name].some((field) => !field || field.trim() === "")) {
         throw new ApiError(400, "All fields are Mandatory")
     }
-    const ExistingUser = await User.findOne({
-        $or: [{ userName }, { email }]
-    })
+    const ExistingUser = await User.findOne({ email })
 
     if (ExistingUser) {
-        throw new ApiError("400", "User with the username or email all ready exist!")
+        throw new ApiError(400, "User with this email already exists!")
     }
     const avatarLocalPath = req.files?.avatar?.[0]?.path
     let avatar = "";
@@ -39,10 +37,9 @@ const reqisterUser = asyncHandler(async (req, res, next) => {
         avatar = uploadResult?.url || ""
     }
     const user = await User.create({
-        userName: userName.toLowerCase(),
         email,
         password,
-        fullname,
+        name,
         avatar
     })
     const createdUser = await User.findById(user._id).select(
@@ -62,15 +59,13 @@ const reqisterUser = asyncHandler(async (req, res, next) => {
 })
 
 const loginUser = asyncHandler(async (req, res, next) => {
-    const { userName, email, password } = req.body || {}
+    const { email, password } = req.body || {}
 
-    if (!(userName || email)) {
-        throw new ApiError(400, "All email/username are Mandatory")
+    if (!email || !password) {
+        throw new ApiError(400, "Email and password are required")
     }
 
-    const user = await User.findOne({
-        $or: [{ email }, { userName: userName?.toLowerCase() }]
-    })
+    const user = await User.findOne({ email })
 
     if (!user) {
         throw new ApiError(404, "User not found")
