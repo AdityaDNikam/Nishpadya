@@ -38,7 +38,7 @@ router.route("/refreshAccessToken").post(RefreshAccessToken);
 router.route("/updatePassword").post(verifyJWT, Upadate_Password);
 
 //get current user
-router.route("/getCurrentUser").post(verifyJWT, GetCurrentUser);
+router.route("/getCurrentUser").get(verifyJWT, GetCurrentUser);
 
 //update account details
 router.route("/updateAccountDetails").post(

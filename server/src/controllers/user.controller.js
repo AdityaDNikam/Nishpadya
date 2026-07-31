@@ -203,11 +203,19 @@ const GetCurrentUser = asyncHandler(async (req, res) => {
 const updateAccountDetails = asyncHandler(async (req, res) => {
     const { fullname, email } = req.body
 
-    if (!fullname || !email) {
-        throw new ApiError(400, "Fullname and Email are mandatory fields")
+    if (!fullname && !email) {
+        throw new ApiError(400, "At least one field (fullname or email) must be provided to update")
     }
 
-    const user = await User.findByIdAndUpdate(req.user?._id, { $set: { fullname, email } }, { new: true }).select("-password -refreshToken")
+    const updateFields = {};
+    if (fullname !== undefined) updateFields.fullname = fullname;
+    if (email !== undefined) updateFields.email = email;
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id, 
+        { $set: updateFields }, 
+        { new: true }
+    ).select("-password -refreshToken")
 
     return res
         .status(200)
