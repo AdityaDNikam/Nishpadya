@@ -53,6 +53,6 @@ router.route("/updateAccountDetails").post(
 );
 
 //delete user
-router.route("/deleteUser").post(verifyJWT, deleteUser);
+router.route("/deleteUser").delete(verifyJWT, deleteUser);
 
 export default router;
