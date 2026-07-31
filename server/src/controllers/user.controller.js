@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
+import Task from "../models/task.model.js"
 import { FileUploadCloudinary, FileDeleteCloudinary, deleteFileOnCloudinary } from "../utils/cloudinary.js";
 import ApiResponce from "../utils/ApiResponce.js";
 import jwt from "jsonwebtoken"
@@ -201,19 +202,19 @@ const GetCurrentUser = asyncHandler(async (req, res) => {
 })
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-    const { fullname, email } = req.body
+    const { name, email } = req.body
 
-    if (!fullname && !email) {
-        throw new ApiError(400, "At least one field (fullname or email) must be provided to update")
+    if (!name && !email) {
+        throw new ApiError(400, "At least one field (name or email) must be provided to update")
     }
 
     const updateFields = {};
-    if (fullname !== undefined) updateFields.fullname = fullname;
+    if (name !== undefined) updateFields.name = name;
     if (email !== undefined) updateFields.email = email;
 
     const user = await User.findByIdAndUpdate(
-        req.user?._id, 
-        { $set: updateFields }, 
+        req.user?._id,
+        { $set: updateFields },
         { new: true }
     ).select("-password -refreshToken")
 
@@ -232,16 +233,33 @@ const deleteUser = asyncHandler(async (req, res) => {
     if (user._id.toString() !== req.user._id.toString()) {
         throw new ApiError(401, "Unauthorized!")
     }
+    
+    // Safely trigger Cloudinary deletion without blocking the main request thread
     if (user.avatar) {
-        await deleteFileOnCloudinary(user.avatar)
+        deleteFileOnCloudinary(user.avatar).catch((err) => {
+            console.error("Failed to delete user avatar on Cloudinary:", err);
+        });
     }
+
+    // Clean up all tasks owned by this user
+    await Task.deleteMany({ owner: id });
+
+    // Delete the user from the database
     const DeleteUser = await User.findByIdAndDelete(id)
+
+    // Clear JWT authentication cookies
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
     return res
         .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
         .json(new ApiResponce(200, DeleteUser, "User deleted successfully"));
 
-}
-)
+})
 
 
 export {
