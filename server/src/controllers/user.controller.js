@@ -225,16 +225,18 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 })
 
 const deleteUser = asyncHandler(async (req, res) => {
-    const id = req.user?._id
-    const user = await User.findById(id)
+    console.log("DeleteUser Controller called!");
+    console.log("req.user from verifyJWT:", req.user);
+    
+    const user = req.user;
     if (!user) {
         throw new ApiError(404, "User not found!")
     }
-    if (user._id.toString() !== req.user._id.toString()) {
-        throw new ApiError(401, "Unauthorized!")
-    }
-    
-    // Safely trigger Cloudinary deletion without blocking the main request thread
+
+    const id = user._id;
+    console.log("Extracted User ID to delete:", id);
+
+    // Safely trigger Cloudinary deletion in the background
     if (user.avatar) {
         deleteFileOnCloudinary(user.avatar).catch((err) => {
             console.error("Failed to delete user avatar on Cloudinary:", err);
