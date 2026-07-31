@@ -1,13 +1,13 @@
-import React from 'react'
+import React from 'react';
+import AppRouter from './router';
 
 function App() {
   return (
-    <>
-      <h1>Hello world</h1>
-    </>
-  )
+    <div className="min-h-screen bg-[#0c0f0a] text-white font-sans">
+      <AppRouter />
+    </div>
+  );
 }
 
+export default App;
 
-
-export default App

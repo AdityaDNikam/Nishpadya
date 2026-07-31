@@ -1,1 +1,38 @@
-@import 'tailwindcss'
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+    --font-logo: 'Montserrat', sans-serif;
+    --font-sans: 'Inter', sans-serif;
+}
+
+@keyframes golden-shine {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.golden-shine-btn {
+    background: linear-gradient(90deg,
+            #bf953f 0%,
+            #fcf6ba 25%,
+            #b38728 50%,
+            #fcf6ba 75%,
+            #bf953f 100%);
+    background-size: 400% 400%;
+    animation: golden-shine 5s ease infinite;
+    box-shadow: 0 4px 15px rgba(179, 135, 40, 0.4);
+    border: 1px solid rgba(252, 246, 186, 0.4);
+}
+
+.golden-shine-btn:hover {
+    box-shadow: 0 6px 22px rgba(252, 246, 186, 0.65);
+}
