@@ -228,10 +228,14 @@ const deleteUser = asyncHandler(async (req, res) => {
     console.log("DeleteUser Controller called!");
     console.log("req.user from verifyJWT:", req.user);
 
-    const { user, password } = req.user;
+    // Fetch the full user document (including password) from the database
+    const user = await User.findById(req.user?._id);
+
     if (!user) {
         throw new ApiError(404, "User not found!")
     }
+
+    const password = req.body.password
 
     if (!password) {
         throw new ApiError(401, "Please provide password")
