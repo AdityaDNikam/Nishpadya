@@ -52,6 +52,12 @@ function DashboardPage() {
     setActivities(prev => prev.filter(act => act.id !== id));
   };
 
+  const handleEditActivity = (id, newData) => {
+    setActivities(prev =>
+      prev.map(act => (act.id === id ? { ...act, title: newData.title, tasks: newData.tasks } : act))
+    );
+  };
+
   const activeCount = activities.filter(act => !act.completed).length;
   const closedCount = activities.filter(act => act.completed).length;
 
@@ -135,6 +141,7 @@ function DashboardPage() {
                       tasks={activity.tasks}
                       aiAssistText="Get Insights"
                       onAiAssist={() => alert(`AI insights for "${activity.title}": Focus on finishing high-priority items first.`)}
+                      onEdit={(newData) => handleEditActivity(activity.id, newData)}
                       completed={activity.completed}
                     />
 
