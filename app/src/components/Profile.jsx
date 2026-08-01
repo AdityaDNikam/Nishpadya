@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 function Profile({
   userName = 'User Name',
@@ -11,6 +11,9 @@ function Profile({
   onEdit,
   onDelete
 }) {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [password, setPassword] = useState('');
+
   const handleEdit = (e) => {
     if (onEdit) {
       e.preventDefault();
@@ -19,10 +22,8 @@ function Profile({
   };
 
   const handleDelete = (e) => {
-    if (onDelete) {
-      e.preventDefault();
-      onDelete();
-    }
+    e.preventDefault();
+    setShowDeleteModal(true);
   };
 
   return (
@@ -73,6 +74,63 @@ function Profile({
           Delete
         </a>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs">
+          {/* Modal Container */}
+          <div className="bg-[#333030] text-white rounded-[12px] p-6 max-w-[480px] w-full mx-4 relative shadow-2xl flex flex-col gap-4 font-serif border border-neutral-800">
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setShowDeleteModal(false);
+                setPassword('');
+              }}
+              className="absolute top-3.5 right-3.5 text-neutral-400 hover:text-white transition-colors duration-200 cursor-pointer"
+              aria-label="Close modal"
+            >
+              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Title */}
+            <h2 className="text-[26px] font-medium text-[#8CE83F] leading-tight select-none">
+              Confirm Delete
+            </h2>
+
+            {/* Content / Prompt */}
+            <p className="text-[17px] text-neutral-200 font-sans tracking-wide leading-relaxed">
+              Please enter Password to proceed
+            </p>
+
+            {/* Input and Confirm Button Row */}
+            <div className="flex items-center gap-4 mt-2">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-[#D9D9D9] text-black font-sans text-[15px] px-3.5 py-2 rounded-[6px] flex-grow outline-none border border-transparent focus:border-neutral-500 shadow-inner"
+                placeholder="Password"
+                autoFocus
+              />
+              <button
+                onClick={() => {
+                  console.log(JSON.stringify({ password }));
+                  if (onDelete) {
+                    onDelete(password);
+                  }
+                  setShowDeleteModal(false);
+                  setPassword('');
+                }}
+                className="bg-[#A91D22] hover:bg-[#921a1e] text-white font-serif text-[15px] px-5 py-2 rounded-[6px] transition-all duration-200 active:scale-95 cursor-pointer shadow-md select-none"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

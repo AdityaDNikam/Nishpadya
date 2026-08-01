@@ -227,10 +227,20 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 const deleteUser = asyncHandler(async (req, res) => {
     console.log("DeleteUser Controller called!");
     console.log("req.user from verifyJWT:", req.user);
-    
-    const user = req.user;
+
+    const { user, password } = req.user;
     if (!user) {
         throw new ApiError(404, "User not found!")
+    }
+
+    if (!password) {
+        throw new ApiError(401, "Please provide password")
+    }
+
+    const isCorrectPassword = await user.isPassCorrect(password)
+
+    if (!isCorrectPassword) {
+        throw new ApiError(401, "Incorrect Password")
     }
 
     const id = user._id;

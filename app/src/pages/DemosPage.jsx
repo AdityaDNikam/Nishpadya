@@ -10,8 +10,8 @@ function DemosPage() {
     alert('Edit action triggered via callback API!');
   };
 
-  const handleDelete = () => {
-    alert('Delete action triggered via callback API!');
+  const handleDelete = (password) => {
+    alert(`Delete action triggered via callback API!\nPassword received: ${password}`);
   };
 
   const handleAiAssist = () => {

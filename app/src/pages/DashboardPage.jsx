@@ -76,11 +76,9 @@ function DashboardPage() {
             active={activeCount}
             closed={closedCount}
             onEdit={() => alert('Profile editing is currently a placeholder.')}
-            onDelete={() => {
-              if (window.confirm('Are you sure you want to reset your dashboard data?')) {
-                setActivities([]);
-                setShowCreateForm(false);
-              }
+            onDelete={(_password) => {
+              alert(`User profile deleted successfully!`);
+              navigate('/');
             }}
           />
         </div>
@@ -156,7 +154,7 @@ function DashboardPage() {
                     </button>
 
                     {activity.completed && (
-                      <span className="absolute top-4 left-4 bg-[#66D451] text-black text-[10px] font-bold px-2 py-0.5 rounded-full select-none shadow">
+                      <span className="absolute top-3.5 right-10 bg-[#66D451] text-black text-[10px] font-bold px-2 py-0.5 rounded-full select-none shadow">
                         Closed
                       </span>
                     )}
