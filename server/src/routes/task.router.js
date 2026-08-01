@@ -17,22 +17,22 @@ const router = Router();
 router.route("/createTask").post(verifyJWT, createTask)
 
 //update task
-router.route("/updateTask").post(verifyJWT, updateTask)
+router.route("/updateTask/:taskId").put(verifyJWT, updateTask)
 
 //delete task
-router.route("/deleteTask").post(verifyJWT, deleteTask)
+router.route("/deleteTask/:taskId").delete(verifyJWT, deleteTask)
 
 //get task
-router.route("/getTask").post(verifyJWT, getTask)
+router.route("/getTask").get(verifyJWT, getTask)
 
 //get task by id
-router.route("/getTaskById").post(verifyJWT, getTaskById)
+router.route("/getTaskById/:taskId").get(verifyJWT, getTaskById)
 
 //get general ai assist
 router.route("/assist").post(verifyJWT, getGrokResponse);
 
 //get ai assist by taskId
-router.route("/assist/:taskId").post(verifyJWT, getAiAssist);
+router.route("/assist/:taskId").get(verifyJWT, getAiAssist);
 
 
 export default router;

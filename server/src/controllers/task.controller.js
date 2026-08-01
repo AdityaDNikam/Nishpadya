@@ -10,10 +10,6 @@ const createTask = asyncHandler(async (req, res) => {
     const user = req.user
     const { title, description, status, dueDate, priority } = req.body
 
-    if (!dueDate) {
-        throw new ApiError(400, "Due date is required")
-    }
-
     const task = await Task.create({
         title,
         description,

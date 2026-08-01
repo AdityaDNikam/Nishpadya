@@ -20,8 +20,7 @@ const taskSchema = new Schema({
         default: "medium"
     },
     dueDate: {
-        type: Date,
-        required: true
+        type: Date
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
