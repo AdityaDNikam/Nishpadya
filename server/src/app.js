@@ -13,6 +13,10 @@ app.use(urlencoded({ extended: true }))
 app.use(express.static("public"))
 app.use(cookieParser())
 
+app.get("/api/v1/health-check", (req, res) => {
+    res.json({ message: "Backend connection successful!" })
+})
+
 import userRouter from "./routes/user.router.js"
 import taskRouter from "./routes/task.router.js"
 

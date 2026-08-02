@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import NavBar from '../components/NavBar';
 import Profile from '../components/Profile';
 import Activity from '../components/Activity';
@@ -131,9 +131,8 @@ function DashboardPage() {
                   <div
                     key={activity.id}
                     onClick={() => toggleActivityCompletion(activity.id)}
-                    className={`relative cursor-pointer transition-all duration-300 hover:-translate-y-1 rounded-[16px] ${
-                      activity.completed ? 'opacity-80' : ''
-                    }`}
+                    className={`relative cursor-pointer transition-all duration-300 hover:-translate-y-1 rounded-[16px] ${activity.completed ? 'opacity-80' : ''
+                      }`}
                     title={activity.completed ? "Click to mark as Active" : "Click to mark as Completed/Closed"}
                   >
                     <Activity
