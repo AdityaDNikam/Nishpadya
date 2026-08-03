@@ -11,10 +11,16 @@ function CreateTodoForm({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const trimmedTitle = title.trim();
+    const trimmedDetails = details.trim();
+    if (!trimmedTitle || !trimmedDetails) {
+      alert('Title and Details cannot be empty or only spaces!');
+      return;
+    }
     if (onCreate) {
-      onCreate({ title, details });
+      onCreate({ title: trimmedTitle, details: trimmedDetails });
     } else {
-      console.log('Todo Created:', { title, details });
+      console.log('Todo Created:', { title: trimmedTitle, details: trimmedDetails });
     }
     // Clear inputs
     setTitle('');

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 function Profile({
   userName = 'User Name',
+  userEmail = '',
   avatarUrl,
   activities = 0,
   active = 0,
@@ -14,11 +15,24 @@ function Profile({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [password, setPassword] = useState('');
 
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [newName, setNewName] = useState(userName);
+  const [newEmail, setNewEmail] = useState(userEmail);
+
+  React.useEffect(() => {
+    setNewName(userName);
+  }, [userName]);
+
+  React.useEffect(() => {
+    setNewEmail(userEmail);
+  }, [userEmail]);
+
   const handleEdit = (e) => {
-    if (onEdit) {
-      e.preventDefault();
-      onEdit();
-    }
+    e.preventDefault();
+    console.log("handleEdit invoked. Prefilling inputs with:", { userName, userEmail });
+    setNewName(userName);
+    setNewEmail(userEmail);
+    setShowEditModal(true);
   };
 
   const handleDelete = (e) => {
@@ -126,6 +140,98 @@ function Profile({
                 className="bg-[#A91D22] hover:bg-[#921a1e] text-white font-serif text-[15px] px-5 py-2 rounded-[6px] transition-all duration-200 active:scale-95 cursor-pointer shadow-md select-none"
               >
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs">
+          {/* Modal Container */}
+          <div className="bg-[#1e1e1e] text-white rounded-[16px] p-6 max-w-[400px] w-full mx-4 relative shadow-2xl flex flex-col gap-5 border border-neutral-800">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowEditModal(false)}
+              className="absolute top-4 right-4 text-neutral-400 hover:text-white transition-colors duration-200 cursor-pointer"
+              aria-label="Close modal"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Title */}
+            <h2 className="text-xl font-bold text-[#66D451] tracking-tight">
+              Edit Profile
+            </h2>
+
+            {/* Form Fields */}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-neutral-400 font-sans font-medium uppercase tracking-wider">Name</label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="bg-[#2a2a2a] text-white font-sans text-sm py-2.5 px-4 rounded-[8px] border border-transparent focus:border-[#66D451]/40 focus:outline-none transition-all duration-200 w-full"
+                  placeholder="Name"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs text-neutral-400 font-sans font-medium uppercase tracking-wider">Email</label>
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="bg-[#2a2a2a] text-white font-sans text-sm py-2.5 px-4 rounded-[8px] border border-transparent focus:border-[#66D451]/40 focus:outline-none transition-all duration-200 w-full"
+                  placeholder="Email"
+                />
+              </div>
+            </div>
+
+            {/* Actions Row */}
+            <div className="flex justify-end gap-3 mt-2">
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                className="bg-[#2c2c2c] hover:bg-[#383838] text-neutral-300 font-sans text-xs py-2 px-4 rounded-[6px] transition-all duration-200 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const trimmedName = newName.trim();
+                  const trimmedEmail = newEmail.trim();
+
+                  const payload = {};
+                  
+                  // Check name individual update (only add if non-empty and changed)
+                  if (trimmedName && trimmedName !== userName) {
+                    payload.name = trimmedName;
+                  }
+
+                  // Check email individual update (only add if non-empty and changed)
+                  if (trimmedEmail && trimmedEmail !== userEmail) {
+                    payload.email = trimmedEmail;
+                  }
+
+                  if (Object.keys(payload).length === 0) {
+                    alert('No changes detected.');
+                    setShowEditModal(false);
+                    return;
+                  }
+
+                  if (onEdit) {
+                    onEdit(payload);
+                  }
+                  setShowEditModal(false);
+                }}
+                className="bg-[#66D451] hover:bg-[#59bd45] text-white font-sans font-semibold text-xs py-2 px-4 rounded-[6px] transition-all duration-200 active:scale-95 cursor-pointer shadow-md"
+              >
+                Save Changes
               </button>
             </div>
           </div>

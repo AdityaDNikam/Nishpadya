@@ -41,6 +41,7 @@ function Forms({ title = 'Sign-Up', fields, onSubmit, ...restProps }) {
   // Helper to determine type of input field
   const getInputType = (fieldName) => {
     const lower = fieldName.toLowerCase();
+    if (lower.includes('name/email')) return 'text';
     if (lower.includes('password')) return 'password';
     if (lower.includes('email')) return 'email';
     if (lower.includes('number') || lower.includes('phone')) return 'tel';

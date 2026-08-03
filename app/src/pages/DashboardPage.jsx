@@ -1,12 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import NavBar from '../components/NavBar';
 import Profile from '../components/Profile';
 import Activity from '../components/Activity';
 import CreateTodoForm from '../components/CreateTodoForm';
+import { axiosServer } from '../api/axiosServer';
 
 function DashboardPage() {
   const navigate = useNavigate();
+
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Retrieve user data from localStorage
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (e) {
+      console.error('Failed to parse user from localStorage:', e);
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    const verifyUserAndLoadTasks = async () => {
+      try {
+        const userResponse = await axiosServer.get('/api/v1/users/getCurrentUser');
+        const fetchedUser = userResponse.data.data;
+        if (fetchedUser) {
+          localStorage.setItem('user', JSON.stringify(fetchedUser));
+          setUser(fetchedUser);
+        }
+
+        // Fetch user tasks
+        try {
+          const taskResponse = await axiosServer.get('/api/v1/task/getTask');
+          const fetchedTasks = taskResponse.data.data || [];
+          const mappedActivities = fetchedTasks.map(task => ({
+            id: task._id,
+            title: task.title,
+            tasks: task.description.split('\n').filter(line => line.trim().length > 0),
+            completed: task.status === 'completed'
+          }));
+          setActivities(mappedActivities);
+        } catch (taskErr) {
+          console.error('Failed to load tasks:', taskErr);
+          if (taskErr.response?.status === 404) {
+            setActivities([]);
+          }
+        }
+        setCheckingAuth(false);
+      } catch (err) {
+        console.error('Session verification failed:', err);
+        localStorage.removeItem('user');
+        navigate('/login', { state: { mode: 'login' } });
+      }
+    };
+    verifyUserAndLoadTasks();
+  }, [navigate]);
 
   // State for activities list
   const [activities, setActivities] = useState([]);
@@ -14,52 +65,127 @@ function DashboardPage() {
   // State to toggle creation form visibility
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const handleLogout = () => {
-    alert('Logged out successfully!');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await axiosServer.post('/api/v1/users/logout');
+    } catch (err) {
+      console.error('Logout request failed:', err);
+    } finally {
+      localStorage.removeItem('user');
+      alert('Logged out successfully!');
+      navigate('/');
+    }
   };
 
   const handleUpgrade = () => {
     alert('Upgrade to Nishpadya Premium to unlock unlimited activities and AI assistant tools!');
   };
 
-  const handleCreateActivity = (todoData) => {
-    // Parse description/details into individual task lines (by bullets or newlines)
-    const taskLines = todoData.details
-      .split('\n')
-      .map(line => line.replace(/^•\s*/, '').trim())
-      .filter(line => line.length > 0);
+  const handleCreateActivity = async (todoData) => {
+    const trimmedTitle = todoData.title?.trim();
+    const trimmedDescription = todoData.details?.trim();
 
-    const newActivity = {
-      id: Date.now(),
-      title: todoData.title,
-      tasks: taskLines.length > 0 ? taskLines : ['Task details'],
-      completed: false
-    };
+    if (!trimmedTitle || !trimmedDescription) {
+      alert('Title and Description are required and cannot be empty!');
+      return;
+    }
 
-    setActivities(prev => [...prev, newActivity]);
-    setShowCreateForm(false);
+    try {
+      const payload = {
+        title: trimmedTitle,
+        description: trimmedDescription,
+        status: 'pending',
+        priority: 'medium'
+      };
+      const response = await axiosServer.post('/api/v1/task/createTask', payload);
+      const createdTask = response.data.data;
+      
+      const newActivity = {
+        id: createdTask._id,
+        title: createdTask.title,
+        tasks: createdTask.description.split('\n').filter(line => line.trim().length > 0),
+        completed: createdTask.status === 'completed'
+      };
+      
+      setActivities(prev => [...prev, newActivity]);
+      setShowCreateForm(false);
+    } catch (err) {
+      console.error('Error creating task:', err);
+      alert(err.response?.data?.message || 'Failed to create task.');
+    }
   };
 
   // Toggle activity completion state (to dynamically drive the 'closed' and 'active' stats in Profile)
-  const toggleActivityCompletion = (id) => {
-    setActivities(prev =>
-      prev.map(act => (act.id === id ? { ...act, completed: !act.completed } : act))
-    );
+  const toggleActivityCompletion = async (id) => {
+    const activity = activities.find(act => act.id === id);
+    if (!activity) return;
+    const newStatus = activity.completed ? 'pending' : 'completed';
+    try {
+      await axiosServer.patch(`/api/v1/task/updateTask/${id}`, {
+        status: newStatus
+      });
+      setActivities(prev =>
+        prev.map(act => (act.id === id ? { ...act, completed: !act.completed } : act))
+      );
+    } catch (err) {
+      console.error('Failed to update task status:', err);
+      alert(err.response?.data?.message || 'Failed to update status.');
+    }
   };
 
-  const handleDeleteActivity = (id) => {
-    setActivities(prev => prev.filter(act => act.id !== id));
+  const handleDeleteActivity = async (id) => {
+    try {
+      await axiosServer.delete(`/api/v1/task/deleteTask/${id}`);
+      setActivities(prev => prev.filter(act => act.id !== id));
+    } catch (err) {
+      console.error('Failed to delete task:', err);
+      alert(err.response?.data?.message || 'Failed to delete task.');
+    }
   };
 
-  const handleEditActivity = (id, newData) => {
-    setActivities(prev =>
-      prev.map(act => (act.id === id ? { ...act, title: newData.title, tasks: newData.tasks } : act))
-    );
+  const handleEditActivity = async (id, newData) => {
+    try {
+      const description = newData.tasks.join('\n');
+      await axiosServer.patch(`/api/v1/task/updateTask/${id}`, {
+        title: newData.title,
+        description
+      });
+      setActivities(prev =>
+        prev.map(act => (act.id === id ? { ...act, title: newData.title, tasks: newData.tasks } : act))
+      );
+    } catch (err) {
+      console.error('Failed to edit task:', err);
+      alert(err.response?.data?.message || 'Failed to edit task.');
+    }
+  };
+
+  const handleAiAssist = async (id, title) => {
+    try {
+      alert('Generating AI insights with Grok, please wait...');
+      const response = await axiosServer.post(`/api/v1/task/assist/${id}`);
+      const assistMsg = response.data.data;
+      alert(`AI Insights for "${title}":\n\n${assistMsg}`);
+    } catch (err) {
+      console.error('AI Assist error:', err);
+      alert(err.response?.data?.message || 'Failed to get AI assistance.');
+    }
   };
 
   const activeCount = activities.filter(act => !act.completed).length;
   const closedCount = activities.filter(act => act.completed).length;
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#0c0f0a] text-white flex flex-col items-center justify-center font-sans select-none">
+        <div className="text-center flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-3 border-[#66D451] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-neutral-500 text-xs uppercase tracking-widest font-mono animate-pulse">
+            Verifying session...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0c0f0a] text-white flex flex-col font-sans select-none pb-12">
@@ -77,14 +203,40 @@ function DashboardPage() {
         {/* Left Side: Profile Card */}
         <div className="w-full md:w-[260px] flex-shrink-0 flex justify-center md:block">
           <Profile
-            userName="User Name"
+            userName={user?.name || 'User Name'}
+            userEmail={user?.email || ''}
+            avatarUrl={user?.avatar || ''}
             activities={activities.length}
             active={activeCount}
             closed={closedCount}
-            onEdit={() => alert('Profile editing is currently a placeholder.')}
-            onDelete={(_password) => {
-              alert(`User profile deleted successfully!`);
-              navigate('/');
+            onEdit={async (updatedData) => {
+              try {
+                const response = await axiosServer.post('/api/v1/users/updateAccountDetails', updatedData);
+                const updatedUser = response.data.data;
+                if (updatedUser) {
+                  localStorage.setItem('user', JSON.stringify(updatedUser));
+                  setUser(updatedUser);
+                  alert('Profile details updated successfully!');
+                }
+              } catch (err) {
+                console.error('Update profile error:', err);
+                const errMsg = err.response?.data?.message || 'Failed to update profile details.';
+                alert(errMsg);
+              }
+            }}
+            onDelete={async (password) => {
+              try {
+                const response = await axiosServer.delete('/api/v1/users/deleteUser', {
+                  data: { password }
+                });
+                localStorage.removeItem('user');
+                alert(response.data.message || 'User profile deleted successfully!');
+                navigate('/');
+              } catch (err) {
+                console.error('Delete profile error:', err);
+                const errMsg = err.response?.data?.message || 'Failed to delete user profile. Please check your password.';
+                alert(errMsg);
+              }
             }}
           />
         </div>
@@ -139,31 +291,11 @@ function DashboardPage() {
                       title={activity.title}
                       tasks={activity.tasks}
                       aiAssistText="Get Insights"
-                      onAiAssist={() => alert(`AI insights for "${activity.title}": Focus on finishing high-priority items first.`)}
+                      onAiAssist={() => handleAiAssist(activity.id, activity.title)}
                       onEdit={(newData) => handleEditActivity(activity.id, newData)}
+                      onDelete={() => handleDeleteActivity(activity.id)}
                       completed={activity.completed}
                     />
-
-                    {/* Floating Delete button inside card for convenience */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteActivity(activity.id);
-                      }}
-                      className="absolute top-3 right-3 text-neutral-500 hover:text-red-500 transition-colors duration-200 cursor-pointer p-1"
-                      title="Delete Activity"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-
-                    {activity.completed && (
-                      <span className="absolute top-3.5 right-10 bg-[#66D451] text-black text-[10px] font-bold px-2 py-0.5 rounded-full select-none shadow">
-                        Closed
-                      </span>
-                    )}
                   </div>
                 ))}
               </div>
