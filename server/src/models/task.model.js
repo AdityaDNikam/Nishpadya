@@ -22,6 +22,9 @@ const taskSchema = new Schema({
     dueDate: {
         type: Date
     },
+    aiAssist: {
+        type: String
+    },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"

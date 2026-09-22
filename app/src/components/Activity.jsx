@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 function Activity({
     title = 'Title',
     tasks = ['Task details', 'Task details', 'Task details'],
+    aiAssist = '',
     onAiAssist,
     onEdit,
     onDelete,
@@ -11,10 +12,14 @@ function Activity({
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(title);
     const [editTasks, setEditTasks] = useState(tasks.join('\n'));
+    const [editCompleted, setEditCompleted] = useState(completed);
 
     const handleAiAssist = (e) => {
-        if (onAiAssist) {
+        if (e) {
             e.preventDefault();
+            e.stopPropagation();
+        }
+        if (onAiAssist) {
             onAiAssist();
         }
     };
@@ -27,7 +32,7 @@ function Activity({
             .filter(line => line.length > 0);
 
         if (onEdit) {
-            onEdit({ title: editTitle, tasks: parsedTasks });
+            onEdit({ title: editTitle, tasks: parsedTasks, completed: editCompleted });
         }
         setIsEditing(false);
     };
@@ -35,7 +40,7 @@ function Activity({
     return (
         <div className="w-full max-w-[260px] bg-[#222222] text-white rounded-[16px] p-5 flex flex-col gap-4 border border-neutral-900/60 shadow-lg min-h-[220px] relative">
             {/* Edit Icon Button */}
-            {!completed && !isEditing && (
+            {!isEditing && (
                 <button
                     type="button"
                     onClick={(e) => {
@@ -43,6 +48,7 @@ function Activity({
                         setIsEditing(true);
                         setEditTitle(title);
                         setEditTasks(tasks.join('\n'));
+                        setEditCompleted(completed);
                     }}
                     className="absolute top-3 right-10 text-neutral-500 hover:text-white transition-colors duration-200 cursor-pointer p-1"
                     title="Edit Activity"
@@ -72,7 +78,7 @@ function Activity({
 
             {/* Closed Status Badge */}
             {completed && (
-                <span className="absolute top-3.5 right-10 bg-[#66D451] text-black text-[10px] font-bold px-2 py-0.5 rounded-full select-none shadow">
+                <span className="absolute top-3.5 right-16 bg-[#66D451] text-black text-[10px] font-bold px-2 py-0.5 rounded-full select-none shadow">
                     Closed
                 </span>
             )}
@@ -92,11 +98,35 @@ function Activity({
                     <textarea
                         value={editTasks}
                         onChange={(e) => setEditTasks(e.target.value)}
-                        rows={4}
+                        rows={3}
                         className="w-full bg-[#3a3a3a] text-white font-sans text-xs py-2 px-3 rounded-[8px] border border-transparent focus:border-[#66D451]/50 focus:outline-none transition-all duration-200 resize-none leading-relaxed"
                         placeholder="Enter tasks (one per line)"
                         required
                     />
+
+                    {/* Status Toggle Switch */}
+                    <div className="flex items-center justify-between bg-[#2d2d2d] px-3 py-2 rounded-[8px] border border-neutral-700/50">
+                        <span className="text-xs font-medium text-neutral-300">Status:</span>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setEditCompleted(prev => !prev)}
+                                className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors duration-200 focus:outline-none cursor-pointer ${
+                                    editCompleted ? 'bg-[#66D451]' : 'bg-neutral-600'
+                                }`}
+                                title="Toggle Open/Closed status"
+                            >
+                                <span
+                                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 ${
+                                        editCompleted ? 'translate-x-5' : 'translate-x-1'
+                                    }`}
+                                />
+                            </button>
+                            <span className={`text-xs font-bold ${editCompleted ? 'text-[#66D451]' : 'text-neutral-400'}`}>
+                                {editCompleted ? 'Closed' : 'Open'}
+                            </span>
+                        </div>
+                    </div>
 
                     <div className="flex justify-end gap-2 mt-auto">
                         <button
@@ -119,12 +149,12 @@ function Activity({
                 /* Normal Display View */
                 <>
                     {/* Title */}
-                    <h3 className={`text-xl font-sans font-semibold tracking-tight text-neutral-100 pr-8 ${completed ? 'line-through decoration-[#66D451] text-neutral-400' : ''}`}>
+                    <h3 className={`text-xl font-sans font-semibold tracking-tight text-neutral-100 pr-16 ${completed ? 'line-through decoration-[#66D451] text-neutral-400' : ''}`}>
                         {title}
                     </h3>
 
                     {/* Task details list */}
-                    <ul className="flex flex-col gap-2 pl-1 text-neutral-300 text-sm font-sans mb-4">
+                    <ul className="flex flex-col gap-2 pl-1 text-neutral-300 text-sm font-sans mb-2">
                         {tasks.map((task, index) => (
                             <li key={index} className="flex items-start gap-2 leading-snug">
                                 <span className="text-neutral-500 font-bold select-none">•</span>
@@ -132,6 +162,21 @@ function Activity({
                             </li>
                         ))}
                     </ul>
+
+                    {/* Saved AI Assist Section with Purple Theme */}
+                    {aiAssist && (
+                        <div className="mb-2 bg-gradient-to-r from-[#1c1829] to-[#161424] border border-purple-500/40 rounded-[12px] p-3 text-purple-200 text-xs font-sans leading-relaxed shadow-[0_2px_10px_rgba(124,58,237,0.15)] flex flex-col gap-1.5">
+                            <div className="flex items-center gap-1.5 text-purple-300 font-semibold text-[11px] border-b border-purple-500/20 pb-1">
+                                <svg className="w-3.5 h-3.5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21L8.188 15.904L3 15L8.188 14.096L9 9L9.813 14.096L15 15L9.813 15.904zM19.071 4.929l-.707 3.536L14.828 9.172l3.536.707.707 3.536.707-3.536 3.536-.707-3.536-.707-.707-3.536z" />
+                                </svg>
+                                <span>AI Assist</span>
+                            </div>
+                            <div className="whitespace-pre-wrap text-[11px] text-purple-200/90">
+                                {aiAssist}
+                            </div>
+                        </div>
+                    )}
 
                     {/* AI Assist Button */}
                     <div className="flex justify-end mt-auto">

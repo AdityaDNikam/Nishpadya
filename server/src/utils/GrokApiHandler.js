@@ -3,15 +3,15 @@ import dotenv from "dotenv";
 
 dotenv.config()
 
-const xai = new OpenAI({
-    apiKey: process.env.XAI_API_KEY,
-    baseURL: process.env.XAI_BASE_URL || "https://api.x.ai/v1"
+const Client = new OpenAI({
+    apiKey: process.env.GEMINI_API_KEY,
+    baseURL: process.env.GEMINI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai/"
 }
 )
 
 const generateGrokCompletion = async (message) => {
-    const response = await xai.chat.completions.create({
-        model: "grok-4",
+    const response = await Client.chat.completions.create({
+        model: "gemini-3.5-flash-lite",
         messages: [
             {
                 role: "system",
@@ -25,7 +25,8 @@ const generateGrokCompletion = async (message) => {
             }
         ]
     })
+    console.log(response.choices[0].message.content)
     return response.choices[0].message.content
 }
 
-export { xai, generateGrokCompletion }
+export { Client, generateGrokCompletion }
